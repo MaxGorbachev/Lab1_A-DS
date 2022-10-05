@@ -7,242 +7,233 @@
 
 import Foundation
 
-final class Node<T> {
-    // Current Value of List Container
-    let currentValue: T
+// MARK: LinkedList class
+class LinkdedList <T: Equatable> {
+    var head: Node<T>? = nil
+    var tail: Node<T>? = nil
+    var size: Int = 0
+}
 
-    // Next Value of List Container
-    fileprivate(set) var nextValue: Node?
+// MARK: Node of LinkedList
+class Node<T: Equatable>: Equatable {
+    static func == (lhs: Node<T>,
+                    rhs: Node<T>) -> Bool {
+        return rhs.value == lhs.value
+    }
 
-    // Previous Value of List Container
-    fileprivate(set) weak var previousValue: Node?
+    var value: T
+    var next: Node<T>? = nil
+    var prev: Node<T>? = nil
 
-    init(currentValue: T, nextValue: Node? = nil, previousValue: Node? = nil) {
-        self.currentValue = currentValue
-        self.nextValue = nextValue
-        self.previousValue = previousValue
+    init (value: T) {
+        self.value = value
     }
 }
 
+// MARK: - Extension for methods realization
+extension LinkdedList {
 
-struct LinkedList<T> {
-    // Unique id for the list
-    private var uniqueReference = UniqueReference() //
-
-    // Reference to first container in the List
-    fileprivate(set) var firstNode: Node<T>?
-
-    // Reference to last container in the List
-    fileprivate(set) var lastNode: Node<T>?
-
-    var isEmpty: Bool {
-        return firstNode == nil
-    }
-
-    var first: WeakReference<Node<T>>? {
-        return firstNode?.weakReference
-    }
-
-    var last: WeakReference<Node<T>>? {
-        return lastNode?.weakReference
-    }
-
-    // Inserting value at first position of the List
-    mutating func insertAtFirst(_ value: T) {
-        copyIfNeeded()
-
-        let node = Node(currentValue: value, nextValue: firstNode)
-
-        firstNode?.previousValue = node
-
-        firstNode = node
-
-        if lastNode == nil && firstNode?.nextValue?.nextValue == nil {
-            lastNode = firstNode?.nextValue
+    // Checking list emptiness
+    func isEmpty() -> Bool {
+        if self.size == 0 {
+            return true
+        } else {
+            return false
         }
     }
 
-    // Inserting value at last position of the List
-    mutating func append(_ value: T) {
-        copyIfNeeded()
-
-        guard !isEmpty else {
-            insertAtFirst(value)
+    // Appending new value at the end of the list
+    func append (value: T) {
+        let newNode = Node(value: value)
+        guard self.head != nil else {
+            self.head = newNode
+            self.tail = newNode
+            self.size += 1
             return
         }
 
-        lastNode?.nextValue = Node(currentValue: value, previousValue: lastNode)
-        lastNode = lastNode?.nextValue
+        self.tail?.next = newNode
+        newNode.prev = self.tail
+        self.tail = newNode
+        self.size += 1
     }
 
-    // Inserting value after entered position
-    mutating func insert(_ value: T, after referenced: WeakReference<Node<T>>) {
-        copyIfNeeded()
+    // Appending new value at first position of the list
+    func insertAtFirst (value: T) {
+        let newNode = Node(value: value)
 
-        guard lastNode !== referenced.node else {
-            append(value)
+        guard self.head != nil else {
+            self.head = newNode
+            self.tail = newNode
+            self.size += 1
             return
         }
 
-        let oldNextNode = referenced.node?.nextValue
-        let newNode = Node(currentValue: value, nextValue: oldNextNode, previousValue: referenced.node)
+        self.head?.prev = newNode
+        newNode.next = self.head
+        self.head = newNode
 
-        oldNextNode?.previousValue = newNode
-        referenced.node?.nextValue = newNode
+        self.size += 1
     }
 
-    @discardableResult
-    // Removing value at first position of the List
-    mutating func removeAtFirst() -> T? {
-        copyIfNeeded()
+    // Inserting new value at Index-position of the list
+    func insertAtIndex (value: T,
+                        atIndex: Int) {
+        guard atIndex >= 0, atIndex <= self.size else {
+            print("Error. undefined value")
+            return
+        }
 
-        defer {
-            firstNode = firstNode?.nextValue
-            firstNode?.previousValue = nil
-
-            if isEmpty {
-                lastNode = nil
+        if atIndex == 0 {
+            self.insertAtFirst(value: value)
+        } else if atIndex == self.size {
+            self.append(value: value)
+        } else {
+            let newNode = Node(value: value)
+            var current = self.head
+            for _ in 0..<atIndex {
+                current = current?.next
             }
+            current?.prev?.next = newNode
+            newNode.prev = current?.prev
+            current?.prev = newNode
+            newNode.next = current
+            self.size += 1
         }
-        return firstNode?.currentValue
     }
 
-    @discardableResult
-    // Removing value at last position of the List
-    mutating func removeAtLast() -> T? {
-        copyIfNeeded()
-
-        guard firstNode?.nextValue != nil else {
-            removeAtFirst()
+    // Getting value of Node at Index-position
+    func valueAtIndex(index: Int) -> T? {
+        guard index >= 0 && index <= self.size else {
+            print("Error. undefinded value")
             return nil
         }
 
-        defer {
-            lastNode = lastNode?.previousValue
-            lastNode?.nextValue = nil
+        var current = self.head
+        for _ in 0..<index {
+            current = current?.next
+        }
 
-            if isEmpty {
-                lastNode = nil
+        return current?.value
+    }
+
+    // Changing value of Node at Index-position
+    func changeValueAtIndex(index: Int,
+                            newValue: T) {
+        guard index >= 0 && index <= self.size else {
+            print("Error. undefinded value")
+            return
+        }
+
+        var current = self.head
+        for _ in 0..<index {
+            current = current?.next
+        }
+
+        current?.value = newValue
+    }
+
+    // Removing last Node of the list
+    func removeLast() {
+        guard self.size != 0 else {
+            print("Error. List is empty.")
+            return }
+
+        if self.size == 1 {
+            self.head = nil
+            self.size -= 1
+            return
+        }
+
+        self.tail = self.tail?.prev
+        self.tail?.next = nil
+        self.size -= 1
+    }
+
+    // Removing first Node of the list
+    func removeFirst() {
+        guard self.size != 0 else {
+            print("Error. List is empty.")
+            return }
+
+        self.head = self.head?.next
+        self.head?.prev = nil
+        self.size -= 1
+    }
+
+    // Removing Node at Index-position of the list
+    func removeAtIndex (value: T,
+                        atIndex: Int) {
+        guard atIndex >= 0, atIndex <= self.size else {
+            print("Error. undefined value")
+            return
+        }
+
+        if atIndex == 0 {
+            self.removeFirst()
+            self.size -= 1
+        } else if atIndex == self.size {
+            self.size -= 1
+        } else {
+            var current = self.head
+            for _ in 0..<atIndex {
+                current = current?.next
             }
+            current?.prev?.next = current?.next.self
+            current?.next?.prev = current?.prev.self
+            self.size -= 1
         }
-        return lastNode?.currentValue
     }
 
-    @discardableResult
-    // Removing value after entered position
-    mutating func remove(after referenced: WeakReference<Node<T>>) -> T? {
-        copyIfNeeded()
+    // Removing all Nodes of the list
+    func removeAll() {
+        guard self.size != 0 else {
+            print("Error. List is empty.")
+            return }
 
-        defer {
-            if referenced.node?.nextValue === lastNode {
-                lastNode = referenced.node
-                lastNode?.nextValue = nil
+        self.head = nil
+        self.tail = nil
+        self.size = 0
+    }
+
+    // Checking first occurance of second list in main list
+    func checkingOccurance(newList: LinkdedList<T>) {
+        if self.isEmpty(), newList.isEmpty() {
+            print("Both lists are empty.")
+        }
+
+        var mainListCurrent = self.head
+        for i in 0..<self.size {
+            var counter = 0
+            if mainListCurrent?.value == newList.head?.value {
+                var tempI = i
+                for j in 0..<newList.size {
+                    if self.valueAtIndex(index: tempI) == newList.valueAtIndex(index: j) {
+                        counter += 1
+                        if counter == newList.size {
+                            print("First occurance is at " + String(i) + " index.")
+                            return
+                        }
+                        tempI += 1
+                    }
+                }
             }
-
-            let newNext = referenced.node?.nextValue?.nextValue
-            referenced.node?.nextValue = newNext
-            newNext?.previousValue = referenced.node
-        }
-
-        return referenced.node?.nextValue?.currentValue
-    }
-}
-
-// Protocol for copy-on-write realisation
-protocol WeakReferenceProtocol: AnyObject {
-    associatedtype T
-
-    var weakReference: WeakReference<Node<T>> {get}
-}
-
-// Class for holding weak-reference for container
-final class WeakReference<T: AnyObject> {
-    private(set) weak var node: T?
-
-    init(node: T?) {
-        self.node = node
-    }
-}
-
-// Extension for copy-on-write realisation
-extension Node: WeakReferenceProtocol {
-    var weakReference: WeakReference<Node<T>> {
-        return WeakReference(node: self)
-    }
-}
-
-
-extension LinkedList: BidirectionalCollection {
-    // Structure for optimization and for showing index
-    struct Index: Comparable {
-        // Index holding Container
-        var node: Node<T>?
-
-        static func < (lhs: LinkedList<T>.Index, rhs: LinkedList<T>.Index) -> Bool {
-            guard lhs != rhs else { return false }
-            let nodes = sequence(first: lhs.node) { $0?.nextValue }
-
-            return nodes.contains { $0 === rhs.node }
-        }
-
-        static func == (lhs: LinkedList<T>.Index, rhs: LinkedList<T>.Index) -> Bool {
-            switch (lhs.node, rhs.node) {
-            case let (left, right):
-                return left === right
-            }
+            mainListCurrent = mainListCurrent?.next
         }
     }
 
-    // Returning value of first-index container
-    var startIndex: LinkedList<T>.Index {
-        return Index(node: firstNode)
-    }
 
-    // Returning value of last-index container
-    var endIndex: LinkedList<T>.Index {
-        return Index(node: lastNode)
-    }
-
-    // Returning value of next-index container
-    func index(after i: LinkedList<T>.Index) -> LinkedList<T>.Index {
-        return Index(node: i.node?.nextValue)
-    }
-
-    // Returning value of previous-index container
-    func index(before i: LinkedList<T>.Index) -> LinkedList<T>.Index {
-        return Index(node: i.node?.previousValue)
-    }
-
-    subscript(position: Index) -> T? {
-        return position.node?.currentValue
-    }
 }
 
-extension LinkedList {
-    // Class for avoidance of weak-references
-    private class UniqueReference {}
-
-    // Making copy of the list if smth changes
-    private mutating func copyIfNeeded() {
-        // Making copies only if there is more than 1 strong reference
-        guard !isKnownUniquelyReferenced(&uniqueReference),
-              // Saving first container of entire list
-              var previous = firstNode else { return }
-        // new first container
-        firstNode = Node(currentValue: previous.currentValue)
-        // iterator for new list
-        var current = firstNode
-
-        while let next = previous.nextValue {
-            current?.nextValue = Node(currentValue: next.currentValue, previousValue: current)
-            current = current?.nextValue
-            previous = next
-        }
-
-        lastNode = current
-        // new unique identifier
-        uniqueReference = UniqueReference()
-    }
-}
-
-//test
+var list = LinkdedList<String>()
+var newList = LinkdedList<String>()
+list.append(value: "SomeString")
+list.append(value: "SomeString2")
+list.append(value: "SomeString3")
+list.append(value: "SomeString3")
+list.append(value: "SomeString4")
+list.append(value: "SomeString3")
+list.append(value: "SomeString4")
+newList.append(value: "SomeString3")
+newList.append(value: "SomeString4")
+print(list.checkingOccurance(newList: newList))
