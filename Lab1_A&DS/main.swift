@@ -162,8 +162,7 @@ extension LinkdedList {
     }
 
     // Removing Node at Index-position of the list
-    func removeAtIndex (value: T,
-                        atIndex: Int) {
+    func removeAtIndex (atIndex: Int) {
         guard atIndex >= 0, atIndex <= self.size else {
             print("Error. undefined value")
             return
@@ -222,18 +221,95 @@ extension LinkdedList {
         }
     }
 
+    // Returns array of values of Nodes in LinkedList
+    func items() -> [T?] {
+        guard self.head != nil else {
+            return []
+        }
 
+        var allItems = [T]()
+        var curr = self.head
+
+        while curr != nil {
+            allItems.append(curr!.value)
+            curr = curr?.next
+        }
+
+        return allItems
+    }
 }
 
 var list = LinkdedList<String>()
-var newList = LinkdedList<String>()
-list.append(value: "SomeString")
-list.append(value: "SomeString2")
-list.append(value: "SomeString3")
-list.append(value: "SomeString3")
-list.append(value: "SomeString4")
-list.append(value: "SomeString3")
-list.append(value: "SomeString4")
-newList.append(value: "SomeString3")
-newList.append(value: "SomeString4")
-print(list.checkingOccurance(newList: newList))
+
+print("---")
+print("Добавление в Конец списка: ")
+list.append(value: "LastValue")
+print(list.items())
+
+print("---")
+print("Добавление в начало списка: ")
+list.insertAtFirst(value: "FirstValue")
+print(list.items())
+
+print("---")
+print("Удаление последнего элемента: ")
+list.removeLast()
+print(list.items())
+
+print("---")
+print("Удаление первого элемента: ")
+list.removeFirst()
+print(list.items())
+
+print("---")
+print("Вставка элемента по индексу: ")
+list.append(value: "1st value")
+list.append(value: "2nd value")
+print(list.items())
+list.insertAtIndex(value: "newValue", atIndex: 1)
+print(list.items())
+
+print("---")
+print("Получение элемента по индексу: ")
+print(list.valueAtIndex(index: 1))
+
+print("---")
+print("Удаление элемента по индексу: ")
+list.removeAtIndex(atIndex: 1)
+print(list.items())
+
+print("---")
+print("Получение размера списка: ")
+print(list.size)
+
+print("---")
+print("Удаление всех элементов списка списка: ")
+list.removeAll()
+print(list.items())
+
+print("---")
+print("Замена элемента по индексу на передаваемый элемент: ")
+list.append(value: "1st value")
+list.append(value: "2nd value")
+print(list.items())
+list.changeValueAtIndex(index: 1, newValue: "Changed 2nd value")
+print(list.items())
+
+print("---")
+print("Проверка на пустоту списка: ")
+print(list.isEmpty())
+
+print("---")
+print("Поиск первого вхождения другого списка в список: ")
+var secondList = LinkdedList<String>()
+list.append(value: "1st value")
+list.append(value: "3nd value")
+list.append(value: "4st value")
+list.append(value: "3nd value")
+list.append(value: "4st value")
+list.append(value: "3nd value")
+secondList.append(value: "3nd value")
+secondList.append(value: "4st value")
+print(list.items())
+print(secondList.items())
+list.checkingOccurance(newList: secondList)
